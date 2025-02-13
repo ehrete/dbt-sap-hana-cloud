@@ -1,0 +1,12 @@
+ my-sap-hana-cloud-profile:
+    target: dev
+    outputs:
+      dev:
+        type: saphanacloud 
+        host: # Replace with your SAP HANA Cloud host address
+        port: # The port for SAP HANA Cloud
+        user: # Your SAP HANA Cloud username
+        password: # Your SAP HANA Cloud password
+        database: # The database you want to connect to
+        schema: # The schema you want to connect to
+        threads: # The number of threads you want to use e.g 4

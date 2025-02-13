@@ -1,0 +1,15 @@
+pip
+wheel
+build
+setuptools>=40.6.0
+tox
+coverage
+twine
+pytest
+dbt-tests-adapter==1.10.4
+pytest
+pytest-dotenv
+pytest-logbook
+pytest-csv
+pytest-xdist
+hdbcli>=2.22.32
