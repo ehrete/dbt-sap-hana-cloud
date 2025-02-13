@@ -1,18 +1,4 @@
-# SAP-samples/repository-template
-This default template for SAP Samples repositories includes files for README, LICENSE, and .reuse/dep5. All repositories on github.com/SAP-samples will be created based on this template.
-
-# Containing Files
-
-1. The LICENSE file:
-In most cases, the license for SAP sample projects is `Apache 2.0`.
-
-2. The .reuse/dep5 file: 
-The [Reuse Tool](https://reuse.software/) must be used for your samples project. You can find the .reuse/dep5 in the project initial. Please replace the parts inside the single angle quotation marks < > by the specific information for your repository.
-
-3. The README.md file (this file):
-Please edit this file as it is the primary description file for your project. You can find some placeholder titles for sections below.
-
-# [Title]
+# DBT SAP HANA Cloud adapter
 <!-- Please include descriptive title -->
 
 <!--- Register repository https://api.reuse.software/register, then add REUSE badge:
@@ -21,13 +7,188 @@ Please edit this file as it is the primary description file for your project. Yo
 
 ## Description
 <!-- Please include SEO-friendly description -->
+The DBT SAP HANA Cloud Adapter allows seamless integration of dbt with SAP HANA Cloud, enabling data transformation, modeling, and orchestration.
 
 ## Requirements
+```
+python>=3.9,
+dbt-core>=1.9.0,
+dbt-adapters>=1.7.2,
+dbt-common>=1.3.0
+hdbcli>=2.22.32
+```
+## Python virtual environment
+- The python virtual environment needs to activated before we begin the installation process
+  ```
+  python3 -m venv <name>
+  ```
+  enter the name for the virtual environment in the place holder.
+
+- Activate the virutal environment
+  ```
+  source <name>/bin/activate
+  ```
+  use the same name which you gave above.
 
 ## Download and Installation
+**Step 1.** Install dbt 
+```
+ python3 -m pip install dbt-core>=1.9.0
+```
+**Step 2.** Install hdbcli 
+```
+ pip3 install hdbcli
+```
+**Step 3.** Install dbt-sap-hana-cloud adapter
+1. Clone the dbt-sap-hana-cloud repositroy
+2. Navigate to the cloned repository
+    > cd /path/to/dbt-sap-hana-cloud
+3. for installation use the below command 
+    ```
+    pip3 install -e .
+    ```
+
+**Step 4.** Create a dbt project 
+- Initialize a New dbt Project in a different location
+  ```
+  dbt init
+  ```
+**Step 5.** Profile setup
+
+1. Edit the $HOME/.dbt/profiles.yml file within the .dbt folder (create if it does not exist).
+2. Add the following configuration, replacing placeholders with your SAP HANA credentials:
+
+#### Sample profile
+```yaml
+my-sap-hana-cloud-profile:
+  target: dev
+  outputs:
+    dev:
+      type: saphanacloud
+      host: <host>       # SAP HANA cloud host address
+      port: <port>       # Port for SAP HANA cloud
+      user: <user>       # SAP HANA cloud username
+      password: <password> # SAP HANA cloud password
+      database: <database> # Database to connect to
+      schema: <schema>   # Schema to use
+      threads: <threads> # Number of threads you want to use
+```
+
+**Step 6.** Link Profile to dbt Project
+- In your dbt_project.yml file (located in your dbt project folder), reference the profile name:
+  ```yaml
+  profile: my-sap-hana-cloud-profile
+  ```
+**Step 7.** Test Connection
+- In the terminal, naviagte to you dbt project folder
+  ```
+  cd /path/to/dbt-project
+  ```
+- Run the following command to ensure dbt can connect to SAP HANA Cloud:
+  ```
+  dbt debug
+  ```
+
+## Test cases for adapter
+
+**Step 1.** Navigate to the dbt-sap-hana-cloud repository
+  ```
+  cd /path/to/dbt-sap-hana-cloud
+  ``` 
+**Step 2.** Install Development Requirements
+- In the dbt-sap-hana-cloud folder, install the dev_requirements.txt:
+  ```
+  pip3 install -r dev_requirements.txt
+  ```
+**Step 3.** Create a test.env File
+- In the same folder as the adapter, create a test.env file and add the following:
+
+  ```
+  DBT_HANA_HOST=<host>       # SAP HANA Cloud host address
+  DBT_HANA_PORT=<port>       # SAP HANA Cloud port
+  DBT_HANA_USER=<user>       # SAP HANA Cloud username
+  DBT_HANA_PASSWORD=<password> # SAP HANA Cloud password
+  DBT_HANA_DATABASE=<database> # Database to connect to
+  DBT_HANA_SCHEMA=<schema>   # Schema to use
+  DBT_HANA_THREADS=<threads> # number of threads you want to use
+  # Create 3 users in hana db with the same name as below to test grants
+  DBT_TEST_USER_1= DBT_TEST_USER_1
+  DBT_TEST_USER_2= DBT_TEST_USER_2
+  DBT_TEST_USER_3= DBT_TEST_USER_3
+  ```
+**Step 4.** Test adapter functionality
+- Run the following command to execute functional tests:
+  ```
+  python3 -m pytest tests/functional/
+  ```
+
+## DBT SAP HANA Cloud specific configuration
+
+### Table Type
+- If you want to define the type of table created for an incremental model or a table model, you can do so by adding this configuration to the model inside the `config` block.
+  ```
+  table_type='row'
+  ```
+  there are two options available for the table type either 'row' or 'column'.
+> Note: The default type of table will be column if nothing is mentioned.
+
+### Index
+There are five types of indexes in the DBT SAP HANA Cloud adapter.
+1. Row table
+    * BTREE
+    * CPBTREE
+2.  Column table
+    * INVERTED VALUE
+    * INVERTED HASH
+    * INVERTED INDIVIDUAL
+
+Below are the example configuration to use them
+- Row table
+  ```
+  {{
+    config(
+      materialized = "table",
+      table_type='row',
+      indexes=[
+        {'columns': ['column_a'], 'type': 'BTREE'},
+        {'columns': ['column_b'], 'type': 'BTREE', 'unique': True},
+        {'columns': ['column_a', 'column_b'], 'type': 'CPBTREE'},
+        {'columns': ['column_b', 'column_a'], 'type': 'CPBTREE', 'unique': True}
+      ]
+    )
+  }}
+  ```
+- Column table
+  ```
+  {{
+    config(
+      materialized = "table",
+      table_type='column',
+      indexes=[
+        {'columns': ['column_b'], 'type': 'INVERTED VALUE'},
+        {'columns': ['column_a', 'column_b'], 'type': 'INVERTED VALUE'},
+        {'columns': ['column_b', 'column_a'], 'type': 'INVERTED VALUE', 'unique': True},
+        {'columns': ['column_b', 'column_c'], 'type': 'INVERTED HASH', 'unique': True},
+        {'columns': ['column_a', 'column_c'], 'type': 'INVERTED INDIVIDUAL', 'unique': True}
+      ]
+    )
+  }}
+  ```
+### Unique Keys as Primary key
+You can now set unique keys as the primary key in an incremental model by simply enabling a flag. For example, you can configure it like this:
+```
+{{
+  config(
+    materialized = "incremental",
+    unique_key = ['id', 'name', 'county'],
+    unique_as_primary = true
+  )
+}}
+```
 
 ## Known Issues
 <!-- You may simply state "No known issues. -->
+No known issues
 
 ## How to obtain support
 [Create an issue](https://github.com/SAP-samples/<repository-name>/issues) in this repository if you find a bug or have questions about the content.
@@ -39,3 +200,4 @@ If you wish to contribute code, offer fixes or improvements, please send a pull 
 
 ## License
 Copyright (c) 2024 SAP SE or an SAP affiliate company. All rights reserved. This project is licensed under the Apache Software License, version 2.0 except as noted otherwise in the [LICENSE](LICENSE) file.
+

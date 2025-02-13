@@ -1,0 +1,26 @@
+fixed:
+  type: saphanacloud
+prompts:
+  host:
+    hint: "your host name"
+    default: "{{ env_var('DBT_HANA_HOST') }}"
+  port:
+    default: "{{ env_var('DBT_HANA_PORT') }}"
+    type: "int"
+  user:
+    hint: "dev username"
+    default: "{{ env_var('DBT_HANA_USER') }}"
+  password:
+    hint: "dev password"
+    hide_input: true
+    default: "{{ env_var('DBT_HANA_PASSWORD') }}"
+  dbname:
+    hint: "default database"
+    default: "{{ env_var('DBT_HANA_DATABASE') }}"
+  scahema:
+    hint: "default database"
+    default: "{{ env_var('DBT_HANA_SCHEMA') }}"
+  threads:
+    hint: "1 or more"
+    type: "int"
+    default: 1

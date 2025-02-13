@@ -1,0 +1,12 @@
+name: dbt_saphanacloud
+version: 1.7.0
+config-version: 2
+
+quoting:
+  database: false
+  schema: false
+  identifier: true
+
+profile: 'testadapter_profile'
+
+macro-paths: ["macros"]
