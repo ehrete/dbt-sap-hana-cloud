@@ -30,7 +30,7 @@ hdbcli>=2.22.32
 ## Download and Installation
 **Step 1.** Install dbt 
 ```
- python3 -m pip install dbt-core>=1.9.0
+ python3 -m pip install dbt-core==1.9.0
 ```
 **Step 2.** Install hdbcli 
 ```
