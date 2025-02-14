@@ -3,7 +3,7 @@ import sys
 from setuptools import find_namespace_packages, setup
 
 if sys.version_info < (3, 9) or sys.version_info >= (3, 13):
-    print('Error: dbt-teradata does not support this version of Python.')
+    print('Error: dbt-sap-hana-cloud does not support this version of Python.')
     print('Please install Python 3.9 or higher but less than 3.13.')
     sys.exit(1)
 
