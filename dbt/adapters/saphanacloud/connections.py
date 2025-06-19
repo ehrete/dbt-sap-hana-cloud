@@ -12,6 +12,7 @@ from dbt_common.events.functions import fire_event
 from dbt.adapters.events.types import ConnectionUsed, SQLQuery, SQLQueryStatus
 from dbt_common.events.contextvars import get_node_info
 from dbt_common.utils import cast_to_str
+import os
 
 logger = AdapterLogger("saphanacloud")
 
