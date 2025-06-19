@@ -94,12 +94,38 @@ DATATYPES = {
 
 @dataclass
 class SapHanaCloudCredentials(Credentials):
-    host: str
-    port: int
-    user: str
-    password: str
     database: str
+    host: Optional[str] = None
+    port: Optional[str] = None
+    user: Optional[str] = None
+    password: Optional[str] = None
+    schema: Optional[str] = None
+    cf_service_name: Optional[str] = None
     connect_timeout: int = 10
+
+    def __post_init__(self) -> None:
+
+        # print(self.cf_service_name)
+
+        if self.cf_service_name is not None:
+
+            cfServices = os.environ['VCAP_SERVICES']
+            cfServicesJson = json.loads(cfServices)
+            hana_service = next(
+                (service for service in cfServicesJson["hana"] if service["name"] == self.cf_service_name), None)
+
+            if hana_service is None:
+                raise DbtRuntimeError(
+                    "Non Cloud Foundry Service with the name available")
+
+            self.schema = hana_service["credentials"].get("schema")
+            self.user = hana_service["credentials"].get("user")
+            self.password = hana_service["credentials"].get("password")
+            self.host = hana_service["credentials"].get("host")
+            self.port = hana_service["credentials"].get("port")
+
+        if None in [self.schema, self.user, self.password, self.host, self.port]:
+            raise DbtRuntimeError("One or more required credentials are None")
 
     _ALIASES = {"dbname": "database", "pass": "password"}
 
@@ -209,9 +235,9 @@ class SapHanaCloudConnectionManager(SQLConnectionManager):
             message = f"An error occurred: {str(e)}"
 
         return AdapterResponse(
-        _message=message,
-        rows_affected=num_rows,
-        code=activity
+            _message=message,
+            rows_affected=num_rows,
+            code=activity
         )
 
     @contextmanager
