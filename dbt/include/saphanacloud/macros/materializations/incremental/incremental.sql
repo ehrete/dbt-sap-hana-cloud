@@ -131,6 +131,9 @@
 
       {% if existing_relation is none %}
           {% set build_sql = get_create_table_as_sql(False, target_relation, sql) %}
+      {% elif existing_relation.is_view %}
+          {% do adapter.drop_relation(existing_relation) %}
+          {% set build_sql = get_create_table_as_sql(False, target_relation, sql) %}
       {% elif full_refresh_mode %}
           {% set build_sql = get_create_table_as_sql(False, intermediate_relation, sql) %}
           {% set need_swap = true %}
@@ -167,6 +170,13 @@
       {% set filter_conditions = get_filter_conditions(partition_type, partition_column, partition_values|sort() ) %}
     
       {% if existing_relation is none %}
+          {% set re = create_empty_table_as(False, target_relation, query_partitions, sql) %}
+          {% set re = insert_partitioned_data(sql, target_relation, filter_conditions) %}
+            {% call noop_statement('main', re) -%}
+          -- no-op (required otherwise an error will be displayed)
+          {%- endcall %}
+      {% if existing_relation.is_view %}
+          {% do adapter.drop_relation(existing_relation) %}
           {% set re = create_empty_table_as(False, target_relation, query_partitions, sql) %}
           {% set re = insert_partitioned_data(sql, target_relation, filter_conditions) %}
             {% call noop_statement('main', re) -%}
