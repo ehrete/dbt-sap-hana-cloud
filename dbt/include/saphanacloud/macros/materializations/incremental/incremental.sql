@@ -175,7 +175,7 @@
             {% call noop_statement('main', re) -%}
           -- no-op (required otherwise an error will be displayed)
           {%- endcall %}
-      {% if existing_relation.is_view %}
+      {% elif existing_relation.is_view %}
           {% do adapter.drop_relation(existing_relation) %}
           {% set re = create_empty_table_as(False, target_relation, query_partitions, sql) %}
           {% set re = insert_partitioned_data(sql, target_relation, filter_conditions) %}
