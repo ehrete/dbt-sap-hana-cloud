@@ -107,14 +107,19 @@ class SapHanaCloudCredentials(Credentials):
 
     def __post_init__(self) -> None:
 
-        # print(self.cf_service_name)
-
         if self.cf_service_name is not None:
 
-            cfServices = os.environ['VCAP_SERVICES']
-            cfServicesJson = json.loads(cfServices)
+            cf_services = json.loads(os.environ['VCAP_SERVICES'])
+
+            # Flatten all service entries into a single list
+            services_flattend = [
+                service
+                for services in cf_services.values()
+                for service in services
+            ]
+
             hana_service = next(
-                (service for service in cfServicesJson["hana"] if service["name"] == self.cf_service_name), None)
+                (service for service in services_flattend if service["name"] == self.cf_service_name), None)
 
             if hana_service is None:
                 raise DbtRuntimeError(

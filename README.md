@@ -114,6 +114,37 @@ my-sap-hana-cloud-profile:
 
 ## DBT SAP HANA Cloud specific configuration
 
+### Gathering connection information from cloud foundry environment variables
+
+If dbt is executed in Cloud Foundry, it is possible to read the connection information directly from the Cloud Foundry environment variable `VCAP_SERVICES`, instead of specifying it manually in the `profiles.yml` file.
+
+To enable this, the service instance that provides the connection information (e.g., user-provided service, hana-schema) must be bound to the application that executes dbt. The following properties must be included in the `credentials` section of the service binding:
+
+```json
+{
+  "schema"  : "...",
+  "user"    : "...",
+  "password": "...",
+  "host"    : "...",
+  "port"    : "..."
+}
+```
+
+The name of the service must be specified in the `cf_service_name` property of the dbt profile.
+
+```yaml
+my-sap-hana-cloud-profile:
+  target: dev
+  outputs:
+    dev:
+      type: saphanacloud
+      database: <database> # Database to connect to
+      threads: <threads> # Number of threads you want to use
+      cf_service_name: <name> # Name of the cloud foundry service
+```
+
+
+
 ### Table Type
 - If you want to define the type of table created for an incremental model or a table model, you can do so by adding this configuration to the model inside the `config` block.
   ```
